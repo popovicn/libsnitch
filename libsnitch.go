@@ -17,10 +17,7 @@ import (
 var banner = `
     _    _ ___ ` + BannerColor + ` ____ _  _ _ ___ ____ _  _ ` + RstColor + `
     |    | |__]` + BannerColor + ` l__  |\ | |  |  |    |__| ` + RstColor + `
-    l___ | |__]` + BannerColor + ` ___] | \| |  |  l___ |  | ` + RstColor + `
-
-
-`+ RstColor
+    l___ | |__]` + BannerColor + ` ___] | \| |  |  l___ |  | ` + RstColor
 
 const (
     Red = "\033[31;1m"
@@ -259,14 +256,6 @@ func snitchNodeJs(targetUrl string) {
     }
 }
 
-func runLibSnitch() {
-    for _, domain := range targetDomains {
-        wg.Add(1)
-        go snitchNodeJs(domain)
-    }
-    wg.Wait()
-}
-
 func abort(msg string, code int) {
     fmt.Println("Error:", msg)
     os.Exit(code)
@@ -319,6 +308,7 @@ func main(){
         }
         targetDomains = readInputFile(*inputFilePath)
     }
+
     // Try creating output file if provided path
     if *outputFilePath != "" {
         _, err := os.Create(*outputFilePath)
@@ -328,11 +318,16 @@ func main(){
     }
 
     if !*simpleCli {
-        fmt.Print(banner)
+        fmt.Println(banner)
+        fmt.Println()
     }
 
     start := time.Now()
-    runLibSnitch()
+    for _, domain := range targetDomains {
+        wg.Add(1)
+        go snitchNodeJs(domain)
+    }
+    wg.Wait()
     elapsed := time.Since(start)
 
     if !*simpleCli {
